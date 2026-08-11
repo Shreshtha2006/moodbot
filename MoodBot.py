@@ -6,9 +6,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 load_dotenv()
 
-# ----------------------------------------------------------------------------
-# MOOD DEFINITIONS  (system prompts kept EXACTLY as in the original script)
-# ----------------------------------------------------------------------------
+
 MOODS = {
     "Cheerful 😃": {
         "prompt": (
@@ -97,9 +95,7 @@ MOODS = {
 
 st.set_page_config(page_title="MoodBot", page_icon="🤖", layout="centered")
 
-# ----------------------------------------------------------------------------
-# SESSION STATE
-# ----------------------------------------------------------------------------
+
 if "selected_mood_key" not in st.session_state:
     st.session_state.selected_mood_key = None
 if "messages" not in st.session_state:
@@ -113,9 +109,8 @@ def get_model():
     return ChatMistralAI(model="mistral-small-2506")
 
 
-# ----------------------------------------------------------------------------
-# SIDEBAR - MOOD DROPDOWN
-# ----------------------------------------------------------------------------
+#Sidebar
+
 st.sidebar.markdown("## 🎭 Choose Your Bot's Mood")
 mood_choice = st.sidebar.selectbox(
     "Pls choose what type of bot you want to talk with:",
@@ -136,17 +131,16 @@ if st.sidebar.button("🔁 Reset Conversation"):
     st.session_state.display_history = []
     st.rerun()
 
-# ----------------------------------------------------------------------------
-# DYNAMIC CSS + FLOATING EMOJI ANIMATION (theme changes with mood)
-# ----------------------------------------------------------------------------
-num_floaters = 18
+#Dynamic Theme
+
+num_floaters = 14
 floaters_html = ""
 for i in range(num_floaters):
     emoji = random.choice(theme["emojis"])
     left = random.randint(0, 100)
-    duration = round(random.uniform(6, 14), 2)
-    delay = round(random.uniform(0, 8), 2)
-    size = random.randint(16, 32)
+    duration = round(random.uniform(7, 15), 2)
+    delay = round(random.uniform(0, 9), 2)
+    size = random.randint(14, 26)
     floaters_html += (
         f'<div class="floater" style="left:{left}vw; font-size:{size}px; '
         f'animation-duration:{duration}s; animation-delay:{delay}s;">{emoji}</div>'
@@ -155,6 +149,12 @@ for i in range(num_floaters):
 st.markdown(
     f"""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    html, body, [class*="css"], .stMarkdown, p, span, div {{
+        font-family: 'Poppins', sans-serif;
+    }}
+
     .stApp {{
         background: linear-gradient(160deg, {theme["bg_start"]}, {theme["bg_end"]});
         transition: background 0.8s ease-in-out;
@@ -175,22 +175,35 @@ st.markdown(
         z-index: 1000 !important;
     }}
 
+    /* ---- FLOATER LAYER: forced BEHIND all real content ---- */
+    div[data-testid="stAppViewContainer"] {{
+        position: relative;
+        z-index: 2;
+    }}
+    div[data-testid="stSidebar"] {{
+        position: relative;
+        z-index: 3;
+    }}
+    div[data-testid="stBottom"] {{
+        position: relative;
+        z-index: 5;
+    }}
     .floater {{
         position: fixed;
         top: 100vh;
-        opacity: 0.85;
+        opacity: 0.35;
         pointer-events: none;
         z-index: 0;
         animation-name: floatUp;
         animation-timing-function: ease-in;
         animation-iteration-count: infinite;
-        filter: drop-shadow(0 0 6px {theme["accent"]});
+        filter: drop-shadow(0 0 4px {theme["accent"]});
     }}
 
     @keyframes floatUp {{
         0%   {{ transform: translateY(0) rotate(0deg); opacity: 0; }}
-        10%  {{ opacity: 0.9; }}
-        90%  {{ opacity: 0.9; }}
+        10%  {{ opacity: 0.4; }}
+        90%  {{ opacity: 0.4; }}
         100% {{ transform: translateY(-110vh) rotate(360deg); opacity: 0; }}
     }}
 
@@ -198,17 +211,19 @@ st.markdown(
         position: sticky;
         top: 0;
         z-index: 999;
-        padding: 14px 0 12px 0;
-        margin: -1rem -1rem 10px -1rem;
+        padding: 16px 0 14px 0;
+        margin: -1rem -1rem 14px -1rem;
         background: linear-gradient(160deg, {theme["bg_start"]}, {theme["bg_end"]});
         border-bottom: 2px solid {theme["primary"]}66;
         box-shadow: 0 4px 20px {theme["bg_start"]}, 0 0 20px {theme["primary"]}33;
     }}
 
     .neon-title {{
+        font-family: 'Orbitron', sans-serif;
         text-align: center;
-        font-size: 44px;
-        font-weight: 800;
+        font-size: 42px;
+        font-weight: 900;
+        letter-spacing: 2px;
         color: {theme["primary"]};
         text-shadow:
             0 0 5px {theme["primary"]},
@@ -220,11 +235,14 @@ st.markdown(
     }}
 
     .neon-subtitle {{
+        font-family: 'Poppins', sans-serif;
+        font-weight: 300;
+        letter-spacing: 0.5px;
         text-align: center;
         color: {theme["accent"]};
-        font-size: 18px;
-        margin-top: -8px;
-        margin-bottom: 6px;
+        font-size: 17px;
+        margin-top: -6px;
+        margin-bottom: 8px;
         text-shadow: 0 0 8px {theme["accent"]};
     }}
 
@@ -240,22 +258,27 @@ st.markdown(
     }}
 
     .mood-badge {{
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.5px;
         display: inline-block;
-        padding: 6px 18px;
+        padding: 7px 20px;
         border-radius: 999px;
         border: 2px solid {theme["primary"]};
         color: {theme["primary"]};
+        background: {theme["bg_start"]}cc;
         box-shadow: 0 0 12px {theme["primary"]};
-        font-weight: 700;
-        margin: 0 auto 18px auto;
+        margin: 0 auto 4px auto;
         text-align: center;
     }}
 
     .badge-wrap {{
         text-align: center;
+        position: relative;
+        z-index: 6;
     }}
 
-    /* the fixed bottom bar that wraps the chat input - was plain dark grey */
+    /* ---- Chat input: stylish glassy pill with theme glow ---- */
     div[data-testid="stBottom"] {{
         background: linear-gradient(0deg, {theme["bg_start"]}, {theme["bg_end"]}) !important;
     }}
@@ -270,35 +293,63 @@ st.markdown(
         background: transparent !important;
     }}
     section[data-testid="stChatInput"] > div {{
-        background: {theme["bg_end"]} !important;
+        background: {theme["bg_end"]}f2 !important;
+        backdrop-filter: blur(10px);
         border: 2px solid {theme["primary"]} !important;
-        box-shadow: 0 0 14px {theme["primary"]} !important;
-        border-radius: 14px !important;
+        box-shadow:
+            0 0 16px {theme["primary"]}aa,
+            inset 0 0 12px {theme["primary"]}22 !important;
+        border-radius: 20px !important;
+        padding: 2px 6px;
     }}
     section[data-testid="stChatInput"] textarea {{
-        background: {theme["bg_end"]} !important;
+        background: transparent !important;
         color: {theme["accent"]} !important;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 15.5px !important;
         caret-color: {theme["primary"]} !important;
         border: none !important;
     }}
     section[data-testid="stChatInput"] textarea::placeholder {{
-        color: {theme["accent"]}aa !important;
+        color: {theme["accent"]}99 !important;
+        font-style: italic;
     }}
     section[data-testid="stChatInput"] button {{
+        background: {theme["primary"]}22 !important;
+        border-radius: 50% !important;
         color: {theme["primary"]} !important;
+        transition: 0.25s;
+    }}
+    section[data-testid="stChatInput"] button:hover {{
+        background: {theme["primary"]} !important;
     }}
     section[data-testid="stChatInput"] svg {{
         fill: {theme["primary"]} !important;
     }}
+    section[data-testid="stChatInput"] button:hover svg {{
+        fill: #000 !important;
+    }}
 
+    /* ---- Chat message bubbles: glassmorphism, always above floaters, readable ---- */
     div[data-testid="stChatMessage"] {{
-        background: rgba(255,255,255,0.04);
-        border: 1px solid {theme["secondary"]};
-        border-radius: 16px;
-        box-shadow: 0 0 10px {theme["secondary"]}55;
-        padding: 6px;
-        z-index: 1;
         position: relative;
+        z-index: 4;
+        background: {theme["bg_start"]}e6;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid {theme["primary"]}88;
+        border-radius: 18px;
+        box-shadow: 0 0 14px {theme["secondary"]}77, 0 4px 18px rgba(0,0,0,0.45);
+        padding: 10px 14px;
+        margin-bottom: 10px;
+    }}
+    div[data-testid="stChatMessage"] p,
+    div[data-testid="stChatMessage"] span,
+    div[data-testid="stChatMessage"] div {{
+        color: #f3f3f3 !important;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 15.5px !important;
+        line-height: 1.55 !important;
     }}
 
     section[data-testid="stSidebar"] {{
@@ -309,15 +360,19 @@ st.markdown(
 
     div[data-baseweb="select"] > div {{
         border: 2px solid {theme["primary"]} !important;
+        border-radius: 12px !important;
         box-shadow: 0 0 10px {theme["primary"]}77;
+        font-family: 'Poppins', sans-serif !important;
     }}
 
     .stButton>button {{
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
         border: 2px solid {theme["primary"]};
         color: {theme["primary"]};
         background: transparent;
         box-shadow: 0 0 10px {theme["primary"]}88;
-        border-radius: 10px;
+        border-radius: 12px;
         transition: 0.3s;
     }}
     .stButton>button:hover {{
@@ -332,9 +387,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ----------------------------------------------------------------------------
-# HEADER (fixed/sticky - stays put while chat messages scroll)
-# ----------------------------------------------------------------------------
+#Header
+
 st.markdown(
     f"""
     <div class="sticky-header">
@@ -348,17 +402,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ----------------------------------------------------------------------------
-# CHAT HISTORY DISPLAY
-# ----------------------------------------------------------------------------
+
 for role, content in st.session_state.display_history:
     avatar = theme["avatar"] if role == "assistant" else "🧑"
     with st.chat_message(role, avatar=avatar):
         st.markdown(content)
 
-# ----------------------------------------------------------------------------
-# CHAT INPUT  (core LangChain logic preserved from the original script)
-# ----------------------------------------------------------------------------
+
 user_input = st.chat_input(f"Talk to your {theme['label']} bot...")
 
 if user_input:
